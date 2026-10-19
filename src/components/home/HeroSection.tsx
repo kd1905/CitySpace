@@ -16,7 +16,37 @@ import { Container } from '@/components/common/Container';
 import { BorderRadius } from '@/constants/layout';
 import { FilterDropdown } from './FilterDropdown';
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80';
+interface HeroSlide {
+  id: number;
+  title: string;
+  subtitle: string;
+  screen: string;
+  image: string;
+}
+
+const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: 1,
+    title: 'Better Spaces\nBrighter Futures',
+    subtitle: 'Modern homes for\na better tomorrow.',
+    screen: '/properties',
+    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80',
+  },
+  {
+    id: 2,
+    title: 'List & Sell\nYour Property',
+    subtitle: 'Reach verified buyers\n& top city investors.',
+    screen: '/sell',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80',
+  },
+  {
+    id: 3,
+    title: 'Meet Certified\nTop Agents',
+    subtitle: 'Expert local brokers\nfor seamless deals.',
+    screen: '/agents',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=80',
+  },
+];
 
 const POPULAR_SEARCHES = ['Pune', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Kolhapur', 'Navi Mumbai'];
 
@@ -37,6 +67,8 @@ export const HeroSection: React.FC = () => {
   const [bhk, setBhk] = useState('Any');
   const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const [heroSlide, setHeroSlide] = useState(1);
+
+  const currentSlide = HERO_SLIDES[heroSlide - 1] || HERO_SLIDES[0];
 
   const handleSearch = () => {
     setActiveDropdown(null);
@@ -95,7 +127,12 @@ export const HeroSection: React.FC = () => {
         {/* Contained Hero Card matching reference design */}
         <View style={[styles.heroCard, !isDesktop && styles.heroCardMobile]}>
           {/* Background Image inside the Card */}
-          <Image source={{ uri: HERO_IMAGE }} style={styles.bgImage} resizeMode="cover" />
+          <Image
+            key={currentSlide.image}
+            source={{ uri: currentSlide.image }}
+            style={styles.bgImage}
+            resizeMode="cover"
+          />
 
           {/* Soft Natural Gradient Overlay */}
           <View style={[styles.overlay, !isDesktop && styles.overlayMobile]} />
@@ -280,29 +317,39 @@ export const HeroSection: React.FC = () => {
           {/* Right Floating Card (Desktop - inside hero card matching reference) */}
           {isDesktop && (
             <View style={styles.floatCard}>
-              <Text style={styles.floatCardTitle}>Better Spaces{'\n'}Brighter Futures</Text>
-              <Text style={styles.floatCardSub}>Modern homes for{'\n'}a better tomorrow.</Text>
               <TouchableOpacity
                 activeOpacity={0.88}
-                onPress={() => router.push('/properties' as any)}
+                onPress={() => router.push(currentSlide.screen as any)}
+                style={styles.floatCardClickableArea}
+              >
+                <Text style={styles.floatCardTitle}>{currentSlide.title}</Text>
+                <Text style={styles.floatCardSub}>{currentSlide.subtitle}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => router.push(currentSlide.screen as any)}
                 style={styles.floatCardBtn}
+                accessibilityLabel={`Open ${currentSlide.screen}`}
               >
                 <Feather name="arrow-right" size={15} color="#0F172A" />
               </TouchableOpacity>
 
               {/* Slider Pagination & Arrow Controls */}
               <View style={styles.floatCardFooter}>
-                <Text style={styles.floatCardCounter}>0{heroSlide} / 03 —</Text>
+                <Text style={styles.floatCardCounter}>0{heroSlide} / 0{HERO_SLIDES.length} —</Text>
                 <View style={styles.navArrows}>
                   <TouchableOpacity
-                    onPress={() => setHeroSlide((s) => (s > 1 ? s - 1 : 3))}
+                    onPress={() => setHeroSlide((s) => (s > 1 ? s - 1 : HERO_SLIDES.length))}
                     style={styles.arrowCircle}
+                    accessibilityLabel="Previous slide"
                   >
                     <Feather name="chevron-left" size={13} color="#FFFFFF" />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => setHeroSlide((s) => (s < 3 ? s + 1 : 1))}
+                    onPress={() => setHeroSlide((s) => (s < HERO_SLIDES.length ? s + 1 : 1))}
                     style={styles.arrowCircle}
+                    accessibilityLabel="Next slide"
                   >
                     <Feather name="chevron-right" size={13} color="#FFFFFF" />
                   </TouchableOpacity>
@@ -614,6 +661,11 @@ const styles = StyleSheet.create({
         backdropFilter: 'blur(16px)',
         boxShadow: '0 12px 28px rgba(0, 0, 0, 0.25)',
       } as any,
+    }),
+  },
+  floatCardClickableArea: {
+    ...Platform.select({
+      web: { cursor: 'pointer' } as any,
     }),
   },
   floatCardTitle: {
